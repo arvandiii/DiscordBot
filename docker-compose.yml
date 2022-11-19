@@ -11,11 +11,11 @@ services:
     image: redis:latest
     volumes:
       - ~/data/arbitrage/redis:/data
-  arbitrage:
+  discord:
     build: .
     container_name: arbitrage
     ports:
-      - 8080:8080
+      - 3000:3000
     depends_on:
       - mongo
       - redis

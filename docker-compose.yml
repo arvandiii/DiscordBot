@@ -1,0 +1,21 @@
+version: "2"
+
+services:
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    volumes:
+      - ~/data/arbitrage/mongo:/data/db
+  redis:
+    container_name: redis
+    image: redis:latest
+    volumes:
+      - ~/data/arbitrage/redis:/data
+  arbitrage:
+    build: .
+    container_name: arbitrage
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongo
+      - redis

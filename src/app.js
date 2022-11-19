@@ -16,8 +16,8 @@ app.get('/', (req, res) => {
 app.post('/init', async (req, res) => {
     console.log('receiving data ...');
     console.log('body is ', req.body);
-    await createServer(req.body)
-    res.send(req.body);
+    const result = await createServer(req.body)
+    res.send(result);
 });
 
 app.listen(port, () => {

@@ -5,15 +5,15 @@ services:
     container_name: mongo
     image: mongo:latest
     volumes:
-      - ~/data/arbitrage/mongo:/data/db
+      - ~/data/discord/mongo:/data/db
   redis:
     container_name: redis
     image: redis:latest
     volumes:
-      - ~/data/arbitrage/redis:/data
+      - ~/data/discord/redis:/data
   discord:
     build: .
-    container_name: arbitrage
+    container_name: discord
     ports:
       - 3000:3000
     depends_on:

@@ -8,11 +8,13 @@ services:
       - ~/data/discord/mongo:/data/db
     ports:
       - "27017:27017"
-  # redis:
-  #   container_name: redis
-  #   image: redis:latest
-  #   volumes:
-  #     - ~/data/discord/redis:/data
+  redis:
+    container_name: redis
+    image: redis:latest
+    volumes:
+      - ~/data/discord/redis:/data
+    ports:
+      - "6379:6379"
   # discord:
   #   build: .
   #   container_name: discord

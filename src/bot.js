@@ -160,9 +160,9 @@ const createServer = async ({ serverName, modIds }) => {
 client.on("ready", async () => {
     const guilds = client.guilds.cache.map((guild) => guild)
     const Guilds = await Promise.map(guilds, async (guild) => {
-        // const g = await guild.delete()
-        // console.log(`Deleted the guild ${g}`)
-        await delpoyCommands({ guildId: guild.id })
+        const g = await guild.delete()
+        console.log(`Deleted the guild ${g}`)
+        // await delpoyCommands({ guildId: guild.id })
     })
 });
 

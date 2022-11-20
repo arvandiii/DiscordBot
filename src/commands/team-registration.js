@@ -31,7 +31,7 @@ module.exports = {
         await interaction.reply(
             `:white_check_mark:Team Registered\nTeam Name: ${teamName}
 Members: ${interaction.user.toString()}, ${teammate.toString()}${teammate2 ? ' ,' + teammate2.toString() : ''}`)
-        await Group.findOneAndUpdate({ serverId: interaction.guildId }, { $set: { teamName, members: [] } }, { new: true, upsert: true })
+        await Group.findOneAndUpdate({ serverId: interaction.guildId }, { $set: { teamName, members } }, { new: true, upsert: true })
         const teamChannel = await interaction.guild.channels.cache.find(channel => channel.name == "Team");
         const everyoneRole = interaction.guild.roles.everyone;
         const overwritePermissions = members.map(m =>
@@ -43,12 +43,12 @@ Members: ${interaction.user.toString()}, ${teammate.toString()}${teammate2 ? ' ,
             type: 0,
             permissionOverwrites: overwritePermissions
         })
-        await textChannel.setParent(teamChannel.id,  { lockPermissions: false })
+        await textChannel.setParent(teamChannel.id, { lockPermissions: false })
         const voiceChannel = await interaction.guild.channels.create({
             name: `team-${teamName}`,
             type: 2,
             permissionOverwrites: overwritePermissions
         })
-        await voiceChannel.setParent(teamChannel.id,  { lockPermissions: false })
+        await voiceChannel.setParent(teamChannel.id, { lockPermissions: false })
     },
 }

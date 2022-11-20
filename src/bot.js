@@ -1,63 +1,64 @@
-const { Client, GatewayIntentBits } = require('discord.js');
-
-const TOKEN = 'MTA0MzYzNzg4ODg5NTY4ODc4Ng.Gd9lMV.txtu_kGQ9zIwa8SM47DSWKVp3C5oqyirNKc_fs'
-// const CLIENT_ID = 1043637888895688786
-
-// const commands = [
-//     {
-//         name: 'ping',
-//         description: 'Replies with Pong!',
-//     },
-// ]
-
-// // const rest = new REST({ version: '10' }).setToken(TOKEN)
-
-// // const registerCommands = async () => {
-// //     try {
-// //         console.log('Started refreshing application (/) commands.')
-
-// //         await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands })
-
-// //         console.log('Successfully reloaded application (/) commands.')
-// //     } catch (error) {
-// //         console.error(error)
-// //     }
-// // }
-
-// // registerCommands()
+const fs = require('node:fs');
+const path = require('node:path');
+const Promise = require('bluebird')
+const { Client, GatewayIntentBits, Collection, Events, REST, Routes } = require('discord.js');
+const config = require('./config.json')
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
-});
+client.commands = new Collection();
+const commands = []
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isChatInputCommand()) return;
-
-    if (interaction.commandName === 'ping') {
-        await interaction.reply('Pong!');
-
-    }
-});
-
-const channels = {
-    Information: {
-        welcome: 1,
-        announcements: 1,
-        rules: 1
-    },
-    General: {
-        "general-chat": 1,
-        "general-help": 1,
-        "off-topic": 1
-    },
-    Team: {
-        "self introduction": 1,
-        "looking for team": 1,
-        "team registration": 1
+for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file);
+    const command = require(filePath);
+    commands.push(command.data.toJSON());
+    if ('data' in command && 'execute' in command) {
+        client.commands.set(command.data.name, command);
+    } else {
+        console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
     }
 }
+
+const rest = new REST({ version: '10' }).setToken(config.token)
+
+const delpoyCommands = async ({guildId}) => {
+    try {
+        console.log(`Started refreshing ${commands.length} application (/) commands.`);
+
+        // The put method is used to fully refresh all commands in the guild with the current set
+        const data = await rest.put(
+            Routes.applicationGuildCommands(config.clientId, guildId),
+            { body: commands },
+        );
+
+        console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+    } catch (error) {
+        // And of course, make sure you catch and log any errors!
+        console.error(error);
+    }
+}
+
+client.on(Events.InteractionCreate, async interaction => {
+    console.log('omade injaaaaa', interaction)
+    if (!interaction.isChatInputCommand()) return;
+
+    const command = interaction.client.commands.get(interaction.commandName);
+
+    if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found.`);
+        return;
+    }
+
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    }
+});
 
 const createServer = async ({ serverName, modIds }) => {
     const Guild = await client.guilds.create({
@@ -72,19 +73,19 @@ const createServer = async ({ serverName, modIds }) => {
                 name: "welcome",
                 type: 0,
                 id: 2,
-                parent_id: 1,
+                parentId: 1,
             },
             {
                 name: "announcements",
                 type: 0,
                 id: 3,
-                parent_id: 1
+                parentId: 1
             },
             {
                 name: "rules",
                 type: 0,
                 id: 4,
-                parent_id: 1
+                parentId: 1
             },
             {
                 name: "General",
@@ -95,19 +96,19 @@ const createServer = async ({ serverName, modIds }) => {
                 name: "general-chat",
                 type: 0,
                 id: 6,
-                parent_id: 5
+                parentId: 5
             },
             {
                 name: "general-help",
                 type: 0,
                 id: 7,
-                parent_id: 5
+                parentId: 5
             },
             {
                 name: "off-topic",
                 type: 0,
                 id: 8,
-                parent_id: 5
+                parentId: 5
             },
             {
                 name: "Team",
@@ -118,24 +119,25 @@ const createServer = async ({ serverName, modIds }) => {
                 name: "self introduction",
                 type: 0,
                 id: 10,
-                parent_id: 9
+                parentId: 9
             },
             {
                 name: "looking for team",
                 type: 0,
                 id: 11,
-                parent_id: 9
+                parentId: 9
             },
             {
                 name: "team registration",
                 type: 0,
                 id: 12,
-                parent_id: 9
+                parentId: 9
             },
         ]
     });
-    const GuildChannel = Guild.channels.cache.find(channel => channel.name == "welcome");
+    const GuildChannel = await Guild.channels.cache.find(channel => channel.name == "welcome");
     const Invite = await GuildChannel.createInvite({ maxAge: 0, unique: true, reason: "Testing." });
+    await delpoyCommands({ guildId: Guild.id })
     return { inviteUrl: Invite.url }
 }
 
@@ -150,6 +152,6 @@ client.on("ready", async () => {
     console.log("hameye guilds:", Guilds);
 });
 
-client.login(TOKEN);
+client.login(config.token);
 
 module.exports = { createServer }

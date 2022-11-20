@@ -2,7 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const Promise = require('bluebird')
 const { Client, GatewayIntentBits, Collection, Events, REST, Routes } = require('discord.js');
-const config = require('./config.json')
+const config = require('../config.json');
+const { Server } = require('./models/Server');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -24,7 +25,7 @@ for (const file of commandFiles) {
 
 const rest = new REST({ version: '10' }).setToken(config.token)
 
-const delpoyCommands = async ({guildId}) => {
+const delpoyCommands = async ({ guildId }) => {
     try {
         console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
@@ -135,6 +136,8 @@ const createServer = async ({ serverName, modIds }) => {
             },
         ]
     });
+    console.log(Guild.channels)
+    await Server.findOneAndUpdate({ id: Guild.id }, { $set: { channels: [], name: serverName } }, { new: true })
     const GuildChannel = await Guild.channels.cache.find(channel => channel.name == "welcome");
     const Invite = await GuildChannel.createInvite({ maxAge: 0, unique: true, reason: "Testing." });
     await delpoyCommands({ guildId: Guild.id })

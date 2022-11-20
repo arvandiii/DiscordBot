@@ -8,4 +8,4 @@ module.exports = {
         console.log('aaaaaa', interaction)
         await interaction.reply('Pong!');
     },
-};
+}

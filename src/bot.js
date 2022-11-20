@@ -4,6 +4,8 @@ const Promise = require('bluebird')
 const { Client, GatewayIntentBits, Collection, Events, REST, Routes } = require('discord.js');
 const config = require('../config.json');
 const { Server } = require('./models/Server');
+const { RoleCode } = require('./models/RoleCode');
+const { generateCode } = require('./utils');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -136,24 +138,34 @@ const createServer = async ({ serverName, modIds }) => {
             },
         ]
     });
-    console.log(Guild.channels)
-    await Server.findOneAndUpdate({ id: Guild.id }, { $set: { channels: [], name: serverName } }, { new: true })
+    await Server.findOneAndUpdate({ id: Guild.id }, { $set: { channels: [], name: serverName } }, { new: true, upsert: true })
+    console.log(await Server.find({}))
     const GuildChannel = await Guild.channels.cache.find(channel => channel.name == "welcome");
     const Invite = await GuildChannel.createInvite({ maxAge: 0, unique: true, reason: "Testing." });
+    const code1 = generateCode(6)
+    const code2 = generateCode(6)
+    await RoleCode.findOneAndUpdate(
+        { serverId: Guild.id },
+        { $set: { role: 'instructor', code: code1, isUsed: false } },
+        { new: true, upsert: true })
+    await RoleCode.findOneAndUpdate(
+        { serverId: Guild.id },
+        { $set: { role: 'instructor', code: code2, isUsed: false } },
+        { new: true, upsert: true })
     await delpoyCommands({ guildId: Guild.id })
-    return { inviteUrl: Invite.url }
+    return { inviteUrl: Invite.url, codes: [code1, code2] }
 }
 
 
 client.on("ready", async () => {
-    console.log("omade injaaaaa");
-    const Guilds = client.guilds.cache.map(guild => {
-        guild.delete()
-            .then(g => console.log(`Deleted the guild ${g}`))
-            .catch(console.error);
-    });
-    console.log("hameye guilds:", Guilds);
+    const guilds = client.guilds.cache.map((guild) => guild)
+    const Guilds = await Promise.map(guilds, async (guild) => {
+        // const g = await guild.delete()
+        // console.log(`Deleted the guild ${g}`)
+        await delpoyCommands({ guildId: guild.id })
+    })
 });
+
 
 client.login(config.token);
 

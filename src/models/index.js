@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const { ObjectId: ObjectIdSchema } = mongoose.Schema
 const { ObjectId: ObjectIdType } = mongoose.Types
 
-const mongoURI = 'mongo'
+const mongoURI = 'localhost:27017'
 const mongoDatabaseName = 'discord'
 
 mongoose.connect(`mongodb://${mongoURI}/${mongoDatabaseName}`, {

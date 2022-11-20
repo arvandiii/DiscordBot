@@ -3,6 +3,7 @@ const { mongo } = require('./index')
 const schema = new mongo.Schema({
     serverId: String,
     teamNumber: Number,
+    teamName: String,
     members: [{ id: String }]
 })
 

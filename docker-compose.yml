@@ -6,16 +6,18 @@ services:
     image: mongo:latest
     volumes:
       - ~/data/discord/mongo:/data/db
-  redis:
-    container_name: redis
-    image: redis:latest
-    volumes:
-      - ~/data/discord/redis:/data
-  discord:
-    build: .
-    container_name: discord
     ports:
-      - 3000:3000
-    depends_on:
-      - mongo
-      - redis
+      - "27017:27017"
+  # redis:
+  #   container_name: redis
+  #   image: redis:latest
+  #   volumes:
+  #     - ~/data/discord/redis:/data
+  # discord:
+  #   build: .
+  #   container_name: discord
+  #   ports:
+  #     - 3000:3000
+  #   depends_on:
+  #     - mongo
+  #     - redis
